@@ -1,2 +1,2 @@
-# aphelia
-Launch a project with one click
+# apheleia
+My personal assistant
