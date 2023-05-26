@@ -5,7 +5,7 @@ from discord.ext import commands
 from rsrch import upload
 
 
-class RsrchCog(commands.Cog):
+class NotionCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.bot.add_listener(self.on_message, "on_message")
@@ -29,9 +29,7 @@ class RsrchCog(commands.Cog):
 
         # Get the captured output and send it to the channel
         output = captured_stdout.getvalue()
-        if output:
+        if output and "-" in output:
             await message.channel.send(f"```\n{output}\n```")
-        else:
-            await message.channel.send("No output was captured.")
 
         await self.bot.process_commands(message)
