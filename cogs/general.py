@@ -15,8 +15,6 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from helpers import checks
-
 
 class General(commands.Cog, name="general"):
     def __init__(self, bot):

@@ -22,12 +22,6 @@ class NotionCog(commands.Cog, name="notion"):
     @checks.is_owner()
     @app_commands.describe(message="A message containing arXiv links to upload.")
     async def upload(self, context: Context, message: str):
-        """
-        This function executes whenever a message is received.
-
-        :param message: The message context.
-        """
-
         # Redirect stdout to a StringIO object
         original_stdout = sys.stdout
         sys.stdout = captured_stdout = io.StringIO()
@@ -41,15 +35,25 @@ class NotionCog(commands.Cog, name="notion"):
         # Reset stdout to the original value
         sys.stdout = original_stdout
 
-        # Get the captured output and send it to the channel
+        # Get the captured output and send it to the channel if it exists
         output = captured_stdout.getvalue()
-        embed = discord.Embed(
-            title="**Uploaded papers**",
-            color=0x9C84EF,
-        )
-        embed.set_footer(text=output)
+
+        # Create an embed with the output
         if output and "-" in output:
-            await context.send(embed=embed)
+            embed = discord.Embed(
+                title="**Uploaded papers**",
+                color=0x9C84EF,
+            )
+
+            data = [line for line in output.splitlines() if line.startswith("-")]
+            embed.add_field(name="", value="\n".join(data), inline=False)
+        else:
+            embed = discord.Embed(
+                title="No papers to upload",
+                color=0xE02B2B,
+            )
+
+        await context.send(embed=embed)
 
 
 async def setup(bot):

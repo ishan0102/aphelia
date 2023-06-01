@@ -11,3 +11,16 @@ I use a $4/mo digital ocean instance
 
 ## setup
 - edit config.json
+```json
+{
+  "prefix": "YOUR_BOT_PREFIX_HERE",
+  "token": "YOUR_BOT_TOKEN_HERE",
+  "permissions": "YOUR_BOT_PERMISSIONS_HERE",
+  "application_id": "YOUR_APPLICATION_ID_HERE",
+  "sync_commands_globally": false,
+  "owners": [
+    123456789,
+    987654321
+  ]
+}
+```
