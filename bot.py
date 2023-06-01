@@ -241,6 +241,13 @@ async def on_command_error(context: Context, error) -> None:
             color=0xE02B2B,
         )
         await context.send(embed=embed)
+    elif isinstance(error, commands.ChannelNotFound):
+        embed = discord.Embed(
+            title="Error",
+            description="The channel you provided was not found!",
+            color=0xE02B2B,
+        )
+        await context.send(embed=embed)
     elif isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(
             title="Error!",

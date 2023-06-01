@@ -2,11 +2,11 @@ import io
 import re
 import sys
 
+import discord
+import rsrch
+from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
-from discord import app_commands
-import rsrch
-import discord
 
 from helpers import checks
 
