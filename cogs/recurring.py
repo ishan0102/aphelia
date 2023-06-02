@@ -16,7 +16,7 @@ class RecurringCog(commands.Cog, name="recurring"):
         self.notification_channel = None
 
     @commands.command(
-        name="notifschannel",
+        name="setnotifs",
         description="Set the channel for sending notifications.",
     )
     @checks.is_owner()
@@ -35,8 +35,7 @@ class RecurringCog(commands.Cog, name="recurring"):
                 async with session.get("https://hacker-news.firebaseio.com/v0/topstories.json") as request:
                     if request.status == 200:
                         top_stories = await request.json()
-                        top_stories = top_stories[:5]
-                        embed = discord.Embed(title="Hacker News Top Stories", color=0x9C84EF)
+                        top_stories = top_stories[:10]
                         data = []
                         for i, story in enumerate(top_stories):
                             async with session.get(
@@ -46,8 +45,12 @@ class RecurringCog(commands.Cog, name="recurring"):
                                 title = story_data.get("title")
                                 score = story_data.get("score")
                                 url = story_data.get("url")
-                                data.append(f"{i}. [{title}]({url}) ({score})")
-                        embed.add_field(name="", value="\n".join(data), inline=False)
+                                discussion = "https://news.ycombinator.com/item?id=" + str(story)
+                                data.append(f"{i}. [{title}]({url}) ({score}, [discussion]({discussion}))")
+                        # embed.description(name="", value="\n".join(data), inline=False)
+                        embed = discord.Embed(
+                            title="Hacker News Top Stories", description="\n".join(data), color=0x9C84EF
+                        )
                         await channel.send(embed=embed)
                     else:
                         embed = discord.Embed(
@@ -77,7 +80,7 @@ class RecurringCog(commands.Cog, name="recurring"):
         if not self.notification_channel:
             embed = discord.Embed(
                 title="Notification channel not set",
-                description="You must set a notification channel using the `notifschannel` command.",
+                description="You must set a notification channel using the `setnotifs` command.",
                 color=0xE02B2B,
             )
             await context.send(embed=embed)
