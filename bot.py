@@ -27,7 +27,7 @@ else:
         config = json.load(file)
 
 
-"""	
+"""
 Setup bot intents (events restrictions)
 For more information about intents, please go to the following websites:
 https://discordpy.readthedocs.io/en/latest/intents.html
@@ -139,6 +139,15 @@ The config is available using the following code:
 bot.config = config
 
 
+@tasks.loop(minutes=1.0)
+async def status_task() -> None:
+    """
+    Setup the game status task of the bot.
+    """
+    statuses = ["with you!", "with Krypton!", "with humans!"]
+    await bot.change_presence(activity=discord.Game(random.choice(statuses)))
+
+
 @bot.event
 async def on_ready() -> None:
     """
@@ -153,15 +162,6 @@ async def on_ready() -> None:
     if config["sync_commands_globally"]:
         bot.logger.info("Syncing commands globally...")
         await bot.tree.sync()
-
-
-@tasks.loop(minutes=1.0)
-async def status_task() -> None:
-    """
-    Setup the game status task of the bot.
-    """
-    statuses = ["with you!", "with Krypton!", "with humans!"]
-    await bot.change_presence(activity=discord.Game(random.choice(statuses)))
 
 
 @bot.event
