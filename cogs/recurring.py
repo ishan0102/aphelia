@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 import discord
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord.ext.commands import Context
 
 from helpers import checks
@@ -12,8 +12,8 @@ from helpers import checks
 class RecurringCog(commands.Cog, name="recurring"):
     def __init__(self, bot):
         self.bot = bot
-        self.hn = False
         self.notification_channel = None
+        self.hn = False
 
     @commands.command(
         name="setnotifs",
@@ -29,37 +29,37 @@ class RecurringCog(commands.Cog, name="recurring"):
         await context.send(embed=embed)
         await channel.send("This channel will now receive notifications.")
 
-    async def start_loop(self, channel):
-        while self.hn:
-            async with aiohttp.ClientSession() as session:
-                async with session.get("https://hacker-news.firebaseio.com/v0/topstories.json") as request:
-                    if request.status == 200:
-                        top_stories = await request.json()
-                        top_stories = top_stories[:10]
-                        data = []
-                        for i, story in enumerate(top_stories):
-                            async with session.get(
-                                f"https://hacker-news.firebaseio.com/v0/item/{story}.json"
-                            ) as story_request:
-                                story_data = await story_request.json()
-                                title = story_data.get("title")
-                                score = story_data.get("score")
-                                url = story_data.get("url")
-                                discussion = "https://news.ycombinator.com/item?id=" + str(story)
-                                data.append(f"{i}. [{title}]({url}) ({score}, [discussion]({discussion}))")
-                        # embed.description(name="", value="\n".join(data), inline=False)
-                        embed = discord.Embed(
-                            title="Hacker News Top Stories", description="\n".join(data), color=0x9C84EF
-                        )
-                        await channel.send(embed=embed)
-                    else:
-                        embed = discord.Embed(
-                            title="Error!",
-                            description="There is something wrong with the API, please try again later",
-                            color=0xE02B2B,
-                        )
-                        await channel.send(embed=embed)
-            await asyncio.sleep(28800)  # 8 hours
+    @tasks.loop(hours=8.0)
+    async def send_hn(self, channel):
+        if not self.hn:
+            return
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://hacker-news.firebaseio.com/v0/topstories.json") as request:
+                if request.status == 200:
+                    top_stories = await request.json()
+                    top_stories = top_stories[:10]
+                    data = []
+                    for i, story in enumerate(top_stories):
+                        async with session.get(
+                            f"https://hacker-news.firebaseio.com/v0/item/{story}.json"
+                        ) as story_request:
+                            story_data = await story_request.json()
+                            title = story_data.get("title")
+                            score = story_data.get("score")
+                            url = story_data.get("url")
+                            discussion = "https://news.ycombinator.com/item?id=" + str(story)
+                            data.append(f"{i}. [{title}]({url}) ({score}, [discussion]({discussion}))")
+                    # embed.description(name="", value="\n".join(data), inline=False)
+                    embed = discord.Embed(title="Hacker News Top Stories", description="\n".join(data), color=0x9C84EF)
+                    await channel.send(embed=embed)
+                else:
+                    embed = discord.Embed(
+                        title="Error!",
+                        description="There is something wrong with the API, please try again later",
+                        color=0xE02B2B,
+                    )
+                    await channel.send(embed=embed)
 
     @commands.hybrid_command(
         name="hn",
@@ -88,9 +88,10 @@ class RecurringCog(commands.Cog, name="recurring"):
 
         if enable_choice == "enable":
             self.hn = True
-            await self.start_loop(self.notification_channel)
+            self.send_hn.start(self.notification_channel)
         elif enable_choice == "disable":
             self.hn = False
+            self.send_hn.cancel()
 
         embed = discord.Embed(
             title=f"Hacker News notifications `{enable_choice}d`",
