@@ -53,11 +53,12 @@ class RecurringCog(commands.Cog, name="recurring"):
                             score = story_data.get("score")
                             post_time = story_data.get("time")
                             url = story_data.get("url")
+                            descendants = story_data.get("descendants")
 
                             hours_ago = round((time.time() - post_time) / 3600)
-                            discussion = "https://news.ycombinator.com/item?id=" + str(story)
+                            comments_url = "https://news.ycombinator.com/item?id=" + str(story)
                             data.append(
-                                f"{i}. [{title}]({url}) ({score} upvotes, {hours_ago} hours ago, [discussion]({discussion}))"
+                                f"{i}. [{title}]({url}) ({score} upvotes, {hours_ago} hours ago, [{descendants} comments]({comments_url}))"
                             )
                     embed = discord.Embed(title="Hacker News Top Stories", description="\n".join(data), color=0x9C84EF)
                     await channel.send(embed=embed)
