@@ -1,5 +1,6 @@
 import os
 import random
+import time
 
 import aiohttp
 import discord
@@ -32,7 +33,7 @@ class RecurringCog(commands.Cog, name="recurring"):
         await context.send(embed=embed)
         await channel.send("This channel will now receive notifications.")
 
-    @tasks.loop(hours=8.0)
+    @tasks.loop(hours=6.0)
     async def send_hn(self, channel):
         if not self.hn:
             return
@@ -50,9 +51,14 @@ class RecurringCog(commands.Cog, name="recurring"):
                             story_data = await story_request.json()
                             title = story_data.get("title")
                             score = story_data.get("score")
+                            post_time = story_data.get("time")
                             url = story_data.get("url")
+
+                            hours_ago = round((time.time() - post_time) / 3600)
                             discussion = "https://news.ycombinator.com/item?id=" + str(story)
-                            data.append(f"{i}. [{title}]({url}) ({score}, [discussion]({discussion}))")
+                            data.append(
+                                f"{i}. [{title}]({url}) ({score} upvotes, {hours_ago} hours ago, [discussion]({discussion}))"
+                            )
                     embed = discord.Embed(title="Hacker News Top Stories", description="\n".join(data), color=0x9C84EF)
                     await channel.send(embed=embed)
                 else:
