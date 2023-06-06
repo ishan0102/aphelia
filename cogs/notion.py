@@ -67,7 +67,7 @@ class NotionCog(commands.Cog, name="notion"):
         await context.send(embed=embed)
 
     @commands.command(
-        name="getpaper",
+        name="fetch",
         description="Retrieve a random research paper from Notion.",
     )
     @checks.is_owner()

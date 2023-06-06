@@ -264,8 +264,9 @@ async def load_cogs() -> None:
     """
     The code in this function is executed whenever the bot will start.
     """
-    for file in os.listdir(f"{os.path.realpath(os.path.dirname(__file__))}/cogs"):
-        if file.endswith(".py"):
+    cog_files = sorted(os.listdir(f"{os.path.realpath(os.path.dirname(__file__))}/cogs"))
+    for file in cog_files:
+        if file.endswith(".py") and not file.startswith("template"):
             extension = file[:-3]
             try:
                 await bot.load_extension(f"cogs.{extension}")

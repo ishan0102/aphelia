@@ -10,7 +10,7 @@ class General(commands.Cog, name="general"):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.hybrid_command(name="help", description="List all commands the bot has loaded.")
+    @commands.hybrid_command(name="help", description="List all commands.")
     async def help(self, context: Context) -> None:
         prefix = self.bot.config["prefix"]
         embed = discord.Embed(title="Help", description="List of available commands:", color=0x9C84EF)
@@ -23,57 +23,6 @@ class General(commands.Cog, name="general"):
                 data.append(f"{prefix}{command.name} - {description}")
             help_text = "\n".join(data)
             embed.add_field(name=i.capitalize(), value=f"```{help_text}```", inline=False)
-        await context.send(embed=embed)
-
-    @commands.hybrid_command(
-        name="botinfo",
-        description="Get some useful (or not) information about the bot.",
-    )
-    async def botinfo(self, context: Context) -> None:
-        """
-        Get some useful (or not) information about the bot.
-
-        :param context: The hybrid command context.
-        """
-        embed = discord.Embed(
-            description="I'm [aphelia](https://github.com/ishan0102/aphelia)",
-            color=0x9C84EF,
-        )
-        embed.set_author(name="Bot Information")
-        embed.add_field(name="Owner:", value="ishan0102#1717", inline=True)
-        embed.add_field(name="Python Version:", value=f"{platform.python_version()}", inline=True)
-        embed.add_field(
-            name="Prefix:",
-            value=f"/ (Slash Commands) or {self.bot.config['prefix']} for normal commands",
-            inline=False,
-        )
-        embed.set_footer(text=f"Requested by {context.author}")
-        await context.send(embed=embed)
-
-    @commands.hybrid_command(
-        name="serverinfo",
-        description="Get some useful (or not) information about the server.",
-    )
-    async def serverinfo(self, context: Context) -> None:
-        """
-        Get some useful (or not) information about the server.
-
-        :param context: The hybrid command context.
-        """
-        roles = [role.name for role in context.guild.roles]
-        if len(roles) > 50:
-            roles = roles[:50]
-            roles.append(f">>>> Displaying[50/{len(roles)}] Roles")
-        roles = ", ".join(roles)
-
-        embed = discord.Embed(title="**Server Name:**", description=f"{context.guild}", color=0x9C84EF)
-        if context.guild.icon is not None:
-            embed.set_thumbnail(url=context.guild.icon.url)
-        embed.add_field(name="Server ID", value=context.guild.id)
-        embed.add_field(name="Member Count", value=context.guild.member_count)
-        embed.add_field(name="Text/Voice Channels", value=f"{len(context.guild.channels)}")
-        embed.add_field(name=f"Roles ({len(context.guild.roles)})", value=roles)
-        embed.set_footer(text=f"Created at: {context.guild.created_at}")
         await context.send(embed=embed)
 
     @commands.hybrid_command(
@@ -95,7 +44,7 @@ class General(commands.Cog, name="general"):
 
     @commands.hybrid_command(
         name="invite",
-        description="Get the invite link of the bot to be able to invite it.",
+        description="Get the bot's invite link.",
     )
     async def invite(self, context: Context) -> None:
         """
@@ -113,36 +62,6 @@ class General(commands.Cog, name="general"):
             await context.send("I sent you a private message!")
         except discord.Forbidden:
             await context.send(embed=embed)
-
-    @commands.hybrid_command(
-        name="bitcoin",
-        description="Get the current price of bitcoin.",
-    )
-    async def bitcoin(self, context: Context) -> None:
-        """
-        Get the current price of bitcoin.
-
-        :param context: The hybrid command context.
-        """
-        # This will prevent your bot from stopping everything when doing a web request - see: https://discordpy.readthedocs.io/en/stable/faq.html#how-do-i-make-a-web-request
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://api.coindesk.com/v1/bpi/currentprice/BTC.json") as request:
-                if request.status == 200:
-                    data = await request.json(
-                        content_type="application/javascript"
-                    )  # For some reason the returned content is of type JavaScript
-                    embed = discord.Embed(
-                        title="Bitcoin price",
-                        description=f"The current price is {data['bpi']['USD']['rate']} :dollar:",
-                        color=0x9C84EF,
-                    )
-                else:
-                    embed = discord.Embed(
-                        title="Error!",
-                        description="There is something wrong with the API, please try again later",
-                        color=0xE02B2B,
-                    )
-                await context.send(embed=embed)
 
 
 async def setup(bot):
