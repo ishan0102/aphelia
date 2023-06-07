@@ -42,7 +42,7 @@ async def validate_enable_choice(context, enable_choice, notification_channel):
     return True
 
 
-class NotificationsCog(commands.Cog, name="Notifications"):
+class NotificationsCog(commands.Cog, name="notifications"):
     def __init__(self, bot):
         self.bot = bot
         self.notification_channel = None
@@ -64,19 +64,28 @@ class NotificationsCog(commands.Cog, name="Notifications"):
         await context.send(embed=embed)
         await channel.send("This channel will now receive notifications.")
 
-    async def send_reminder(self, user_id: int, reminder_name: str) -> None:
-        user = await self.bot.fetch_user(user_id)
-        await user.send(f"🔔 Reminder: {reminder_name} 🔔")
+    async def send_reminder(self, channel: discord.TextChannel, reminder_name: str) -> None:
+        await channel.send(f"🔔 Reminder: {reminder_name} 🔔")
 
     @commands.command(
         name="remindme",
         description="Sets a reminder for you.",
     )
     async def remindme(self, context, time: int, *, name: str) -> None:
+        if not self.notification_channel:
+            await send_error_message(
+                context,
+                "Notification channel not set",
+                "You must set a notification channel using the `setnotifs` command.",
+            )
+            return
+
         await context.send(content=f"Reminder set for `{name}` in `{time}` minutes.")
         reminder_time = datetime.now() + timedelta(minutes=time)
         self.reminders.append((context.author.id, reminder_time, name))
-        asyncio.get_event_loop().call_later(time * 60, asyncio.create_task, self.send_reminder(context.author.id, name))
+        asyncio.get_event_loop().call_later(
+            time * 60, asyncio.create_task, self.send_reminder(self.notification_channel, name)
+        )
 
     @tasks.loop(hours=6.0)
     async def send_hn(self, channel):

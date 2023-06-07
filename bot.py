@@ -202,6 +202,11 @@ async def on_command_error(context: Context, error) -> None:
     :param context: The context of the normal command that failed executing.
     :param error: The error that has been faced.
     """
+    if isinstance(error, commands.CommandNotFound):
+        embed = discord.Embed(
+            description="This command does not exist. Try running `!help` to see available commands.", color=0xE02B2B
+        )
+        await context.send(embed=embed)
     if isinstance(error, commands.CommandOnCooldown):
         minutes, seconds = divmod(error.retry_after, 60)
         hours, minutes = divmod(minutes, 60)
@@ -251,7 +256,6 @@ async def on_command_error(context: Context, error) -> None:
     elif isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(
             title="Error!",
-            # We need to capitalize because the command arguments have no capital letter in the code.
             description=str(error).capitalize(),
             color=0xE02B2B,
         )

@@ -51,12 +51,11 @@ class General(commands.Cog, name="general"):
         """
         embed = discord.Embed(
             description=f"Invite me by clicking [here](https://discordapp.com/oauth2/authorize?&client_id={self.bot.config['application_id']}&scope=bot+applications.commands&permissions={self.bot.config['permissions']}).",
-            color=0xD75BF4,
+            color=0x9C84EF,
         )
         try:
             # To know what permissions to give to your bot, please see here: https://discordapi.com/permissions.html and remember to not give Administrator permissions.
-            await context.author.send(embed=embed)
-            await context.send("I sent you a private message!")
+            await context.send(embed=embed)
         except discord.Forbidden:
             await context.send(embed=embed)
 
