@@ -12,6 +12,34 @@ from rsrch import RsrchClient
 from helpers import checks
 
 
+async def fetch_hn_top_stories(session):
+    async with session.get("https://hacker-news.firebaseio.com/v0/topstories.json") as request:
+        if request.status == 200:
+            return await request.json()
+        return None
+
+
+async def send_error_message(channel, title, description):
+    embed = discord.Embed(title=title, description=description, color=0xE02B2B)
+    await channel.send(embed=embed)
+
+
+async def validate_enable_choice(context, enable_choice, notification_channel):
+    if enable_choice not in ["enable", "disable"]:
+        await send_error_message(context, "Invalid choice", "You must choose between `enable` and `disable`.")
+        return False
+
+    if not notification_channel:
+        await send_error_message(
+            context,
+            "Notification channel not set",
+            "You must set a notification channel using the `setnotifs` command.",
+        )
+        return False
+
+    return True
+
+
 class RecurringCog(commands.Cog, name="recurring"):
     def __init__(self, bot):
         self.bot = bot
@@ -39,36 +67,30 @@ class RecurringCog(commands.Cog, name="recurring"):
             return
 
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://hacker-news.firebaseio.com/v0/topstories.json") as request:
-                if request.status == 200:
-                    top_stories = await request.json()
-                    top_stories = top_stories[:10]
-                    data = []
-                    for i, story in enumerate(top_stories):
-                        async with session.get(
-                            f"https://hacker-news.firebaseio.com/v0/item/{story}.json"
-                        ) as story_request:
-                            story_data = await story_request.json()
-                            title = story_data.get("title")
-                            score = story_data.get("score")
-                            post_time = story_data.get("time")
-                            url = story_data.get("url")
-                            descendants = story_data.get("descendants")
+            top_stories = await fetch_hn_top_stories(session)
+            if not top_stories:
+                await send_error_message(
+                    channel, "Error!", "There is something wrong with the API, please try again later"
+                )
 
-                            hours_ago = round((time.time() - post_time) / 3600)
-                            comments_url = "https://news.ycombinator.com/item?id=" + str(story)
-                            data.append(
-                                f"{i}. [{title}]({url}) ({score} upvotes, {hours_ago} hours ago, [{descendants} comments]({comments_url}))"
-                            )
-                    embed = discord.Embed(title="Hacker News Top Stories", description="\n".join(data), color=0x9C84EF)
-                    await channel.send(embed=embed)
-                else:
-                    embed = discord.Embed(
-                        title="Error!",
-                        description="There is something wrong with the API, please try again later",
-                        color=0xE02B2B,
+            top_stories = top_stories[:10]
+            data = []
+            for i, story in enumerate(top_stories):
+                async with session.get(f"https://hacker-news.firebaseio.com/v0/item/{story}.json") as story_request:
+                    story_data = await story_request.json()
+                    title = story_data.get("title")
+                    score = story_data.get("score")
+                    post_time = story_data.get("time")
+                    url = story_data.get("url")
+                    descendants = story_data.get("descendants")
+
+                    hours_ago = round((time.time() - post_time) / 3600)
+                    comments_url = "https://news.ycombinator.com/item?id=" + str(story)
+                    data.append(
+                        f"{i}. [{title}]({url}) ({score} upvotes, {hours_ago} hours ago, [{descendants} comments]({comments_url}))"
                     )
-                    await channel.send(embed=embed)
+            embed = discord.Embed(title="Hacker News Top Stories", description="\n".join(data), color=0x9C84EF)
+            await channel.send(embed=embed)
 
     @commands.hybrid_command(
         name="hn",
@@ -77,22 +99,7 @@ class RecurringCog(commands.Cog, name="recurring"):
     @checks.is_owner()
     @app_commands.describe(enable_choice="Your choice (enable/disable)")
     async def hn(self, context: Context, enable_choice: str):
-        if enable_choice not in ["enable", "disable"]:
-            embed = discord.Embed(
-                title="Invalid choice",
-                description="You must choose between `enable` and `disable`.",
-                color=0xE02B2B,
-            )
-            await context.send(embed=embed)
-            return
-
-        if not self.notification_channel:
-            embed = discord.Embed(
-                title="Notification channel not set",
-                description="You must set a notification channel using the `setnotifs` command.",
-                color=0xE02B2B,
-            )
-            await context.send(embed=embed)
+        if not await validate_enable_choice(context, enable_choice, self.notification_channel):
             return
 
         if enable_choice == "enable":
@@ -127,22 +134,7 @@ class RecurringCog(commands.Cog, name="recurring"):
     @checks.is_owner()
     @app_commands.describe(enable_choice="Your choice (enable/disable)")
     async def paper(self, context: Context, enable_choice: str):
-        if enable_choice not in ["enable", "disable"]:
-            embed = discord.Embed(
-                title="Invalid choice",
-                description="You must choose between `enable` and `disable`.",
-                color=0xE02B2B,
-            )
-            await context.send(embed=embed)
-            return
-
-        if not self.notification_channel:
-            embed = discord.Embed(
-                title="Notification channel not set",
-                description="You must set a notification channel using the `setnotifs` command.",
-                color=0xE02B2B,
-            )
-            await context.send(embed=embed)
+        if not await validate_enable_choice(context, enable_choice, self.notification_channel):
             return
 
         if enable_choice == "enable":

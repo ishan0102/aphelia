@@ -35,7 +35,7 @@ class NotionCog(commands.Cog, name="notion"):
         # Push the URLs to push_papers
         try:
             self.rsrch_client.upload(urls)
-        except ValueError as e:
+        except ValueError:
             embed = discord.Embed(
                 title="No valid arXiv URLs found",
                 color=0xE02B2B,
