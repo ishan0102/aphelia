@@ -1,6 +1,8 @@
+import asyncio
 import os
 import random
 import time
+from datetime import datetime, timedelta
 
 import aiohttp
 import discord
@@ -40,10 +42,11 @@ async def validate_enable_choice(context, enable_choice, notification_channel):
     return True
 
 
-class RecurringCog(commands.Cog, name="recurring"):
+class NotificationsCog(commands.Cog, name="Notifications"):
     def __init__(self, bot):
         self.bot = bot
         self.notification_channel = None
+        self.reminders = []
         self.hn = False
         self.rsrch_client = RsrchClient(token=os.getenv("NOTION_TOKEN"), database_id=os.getenv("NOTION_DATABASE_ID"))
 
@@ -60,6 +63,20 @@ class RecurringCog(commands.Cog, name="recurring"):
         )
         await context.send(embed=embed)
         await channel.send("This channel will now receive notifications.")
+
+    async def send_reminder(self, user_id: int, reminder_name: str) -> None:
+        user = await self.bot.fetch_user(user_id)
+        await user.send(f"🔔 Reminder: {reminder_name} 🔔")
+
+    @commands.command(
+        name="remindme",
+        description="Sets a reminder for you.",
+    )
+    async def remindme(self, context, time: int, *, name: str) -> None:
+        await context.send(content=f"Reminder set for `{name}` in `{time}` minutes.")
+        reminder_time = datetime.now() + timedelta(minutes=time)
+        self.reminders.append((context.author.id, reminder_time, name))
+        asyncio.get_event_loop().call_later(time * 60, asyncio.create_task, self.send_reminder(context.author.id, name))
 
     @tasks.loop(hours=6.0)
     async def send_hn(self, channel):
@@ -150,4 +167,4 @@ class RecurringCog(commands.Cog, name="recurring"):
 
 
 async def setup(bot):
-    await bot.add_cog(RecurringCog(bot))
+    await bot.add_cog(NotificationsCog(bot))
