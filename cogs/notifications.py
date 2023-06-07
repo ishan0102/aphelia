@@ -9,6 +9,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
+from discord.utils import format_dt, utcnow
 from rsrch import RsrchClient
 
 from helpers import checks
@@ -82,10 +83,39 @@ class NotificationsCog(commands.Cog, name="notifications"):
 
         await context.send(content=f"Reminder set for `{name}` in `{time}` minutes.")
         reminder_time = datetime.now() + timedelta(minutes=time)
-        self.reminders.append((context.author.id, reminder_time, name))
+        self.reminders.append((context.author, reminder_time, name))
         asyncio.get_event_loop().call_later(
             time * 60, asyncio.create_task, self.send_reminder(self.notification_channel, name)
         )
+
+    @commands.command(
+        name="reminders",
+        description="Lists all current reminders.",
+    )
+    async def reminders(self, context: Context) -> None:
+        if not self.reminders:
+            embed = discord.Embed(
+                title="Reminders",
+                description="No reminders set at the moment.",
+                color=0x9C84EF,
+            )
+        else:
+            embed = discord.Embed(
+                title="Reminders",
+                color=0x9C84EF,
+            )
+            for reminder in self.reminders:
+                user = reminder[0]
+                reminder_time_left = format_dt(reminder[1], "R")
+                reminder_name = reminder[2]
+
+                embed.add_field(
+                    name=f"Reminder: {reminder_name}",
+                    value=f"Time left: {reminder_time_left}\nSet by: {user.name}",
+                    inline=False,
+                )
+
+        await context.send(embed=embed)
 
     @tasks.loop(hours=6.0)
     async def send_hn(self, channel):
