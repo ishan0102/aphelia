@@ -24,7 +24,7 @@ class NotionCog(commands.Cog, name="notion"):
     )
     @checks.is_owner()
     @app_commands.describe(message="A message containing arXiv links to upload.")
-    async def upload(self, context: Context, message: str):
+    async def upload(self, context: Context, *, message: str):
         # Redirect stdout to a StringIO object
         original_stdout = sys.stdout
         sys.stdout = captured_stdout = io.StringIO()
