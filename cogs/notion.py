@@ -8,6 +8,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
+from dotenv import load_dotenv
 from rsrch import RsrchClient
 
 from helpers import checks
@@ -15,6 +16,7 @@ from helpers import checks
 
 class NotionCog(commands.Cog, name="notion"):
     def __init__(self, bot):
+        load_dotenv()
         self.bot = bot
         self.rsrch_client = RsrchClient(token=os.getenv("NOTION_TOKEN"), database_id=os.getenv("NOTION_DATABASE_ID"))
 

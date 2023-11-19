@@ -1,4 +1,4 @@
-# apheleia
+# aphelia
 My personal assistant
 
 ## TODO:
