@@ -3,6 +3,7 @@ import os
 import random
 import time
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
 import aiohttp
 import discord
@@ -45,6 +46,7 @@ async def validate_enable_choice(context, enable_choice, notification_channel):
 
 class NotificationsCog(commands.Cog, name="notifications"):
     def __init__(self, bot):
+        load_dotenv()
         self.bot = bot
         self.notification_channel = None
         self.reminders = []
